@@ -33,9 +33,9 @@ function Home() {
     </div>;
   }
 
-  return (
-    <div className={`bg-${darkMode ? 'gray-900' : 'gray-100'} min-h-screen`}>
-      <ResizablePanelGroup direction="horizontal" className="w-full h-screen">
+    return (
+    <div className={`bg-${darkMode ? 'gray-900' : 'gray-100'} contents min-h-screen`}>
+      <ResizablePanelGroup direction="vertical" className="w-full">
         <ResizablePanel defaultSize={70} minSize={30}>
           <div className="flex flex-col h-full">
             <div className={`flex items-center justify-between border-b p-2 py-4`}>
@@ -59,7 +59,7 @@ function Home() {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={30} minSize={20}>
-          <ScrollArea className="h-screen">
+          <ScrollArea className="h-full">
             <div className="space-y-2 p-4">
               {lmps.map((lmp) => (
                 <Card 
@@ -68,29 +68,29 @@ function Home() {
                   onClick={(e) => toggleExpand(lmp.name, e)}
                 >
                   <CardHeader>
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <Link 
                         to={`/lmp/${lmp.name}`} 
-                        className={`text-xl font-semibold ${darkMode ? 'text-gray-100 hover:text-blue-300' : 'text-gray-800 hover:text-blue-600'} break-words`}
+                        className={`text-sm font-semibold ${darkMode ? 'text-gray-100 hover:text-blue-300' : 'text-gray-800 hover:text-blue-600'} break-words`}
                         onClick={(e) => e.stopPropagation()}
                       >
                         {truncateId(lmp.name)}
                       </Link>
                       <div className="flex space-x-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
-                      ID: {truncateId(lmp.lmp_id)}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded-full ml-2 ${darkMode ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>
-                      Latest
-                    </span>
-                    <VersionBadge version={lmp.version_number + 1} hash={lmp.lmp_id} />
-                  </div>
+                        <span className={`text-xs px-2 py-1 rounded-full ${darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'}`}>
+                          ID: {truncateId(lmp.lmp_id)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${darkMode ? 'bg-green-600 text-white' : 'bg-green-100 text-green-800'}`}>
+                          Latest
+                        </span>
+                        <VersionBadge version={lmp.version_number + 1} hash={lmp.lmp_id} />
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                  <div className={`bg-${darkMode ? 'gray-700' : 'gray-100'} rounded p-3 mb-4`}>
-                  <code className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {lmp.source.length > 100 ? `${lmp.source.substring(0, 100)}...` : lmp.source}
+                    <div className={`bg-${darkMode ? 'gray-700' : 'gray-100'} rounded p-2`}>
+                      <code className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        {lmp.source.length > 50 ? `${lmp.source.substring(0, 50)}...` : lmp.source}
                       </code>
                     </div>
                   </CardContent>
