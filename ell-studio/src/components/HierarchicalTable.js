@@ -1,16 +1,24 @@
-import React, { useMemo, useRef, useEffect, useState } from 'react';
-import {  FiChevronDown, FiArrowUp, FiArrowDown, FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import React, { useMemo, useEffect, useState } from 'react';
+import { FiChevronDown, FiArrowUp, FiArrowDown, FiChevronLeft, FiChevronRight, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
 import { HierarchicalTableProvider, useHierarchicalTable } from './HierarchicalTableContext';
-import { Checkbox } from "components/common/Checkbox"
+import { Checkbox } from "components/common/Checkbox";
+import { Input } from "components/common/Input";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "components/common/Tables";
 
-
-const TableRow = ({ item, schema, level = 0, onRowClick, columnWidths, updateWidth, rowClassName }) => {
+const TableRowComponent = ({ item, schema, level = 0, onRowClick, columnWidths, updateWidth, rowClassName }) => {
   const { expandedRows, selectedRows, toggleRow, toggleSelection, isItemSelected } = useHierarchicalTable();
   const hasChildren = item.children && item.children.length > 0;
   const isExpanded = expandedRows[item.id];
   const isSelected = isItemSelected(item);
   const [isNew, setIsNew] = useState(true);
-  
 
   const customRowClassName = rowClassName ? rowClassName(item) : '';
 
@@ -23,7 +31,7 @@ const TableRow = ({ item, schema, level = 0, onRowClick, columnWidths, updateWid
 
   return (
     <React.Fragment>
-      <tr
+      <TableRow
         className={`border-b border-gray-800 hover:bg-gray-800/30 cursor-pointer transition-all duration-500 ease-in-out 
           ${isSelected ? 'bg-blue-900/30' : ''} 
           ${customRowClassName}
@@ -32,14 +40,14 @@ const TableRow = ({ item, schema, level = 0, onRowClick, columnWidths, updateWid
           if (onRowClick) onRowClick(item);
         }}
       >
-        <td className="py-3 px-4 w-12">
+        <TableCell className="py-1 px-4 w-12 text-[13px]">
           <Checkbox
             checked={isSelected}
             onCheckedChange={(checked) => toggleSelection(item, checked)}
             onClick={(e) => e.stopPropagation()}
           />
-        </td>
-        <td className="py-3 px-4 w-12 relative" style={{ paddingLeft: `${level * 20 + 16}px` }}>
+        </TableCell>
+        <TableCell className="py-1 px-4 w-12 relative text-[13px]" style={{ paddingLeft: `${level * 20 + 16}px` }}>
           {hasChildren ? (
             <span onClick={(e) => { e.stopPropagation(); toggleRow(item.id); }}>
               {isExpanded ? <FiChevronDown className="text-gray-400 text-base" /> : <FiChevronRight className="text-gray-400 text-base" />}
@@ -49,84 +57,82 @@ const TableRow = ({ item, schema, level = 0, onRowClick, columnWidths, updateWid
               <span className="absolute left-1/2 top-1/2 w-1.5 h-1.5 bg-gray-600 rounded-full transform -translate-x-1/2 -translate-y-1/2"></span>
             </span>
           )}
-        </td>
+        </TableCell>
         {schema.columns.map((column, index) => {
           const content = column.render ? column.render(item) : item[column.key];
           const maxWidth = column.maxWidth || Infinity;
           return (
-            <React.Fragment key={index}>
-              <td 
-                className={`py-3 px-4 whitespace-nowrap overflow-hidden text-ellipsis ${column.className || ''}`}
-                style={{ 
-                  ...column.style,
-                  maxWidth: maxWidth !== Infinity ? `${maxWidth}px` : undefined,
-                  width: `${Math.min(columnWidths[column.key] || 0, maxWidth)}px`
-                }}
-                title={typeof content === 'string' ? content : ''}
-              >
-                {content}
-              </td>
-            </React.Fragment>
+            <TableCell 
+              key={index}
+              className={`py-1 px-4 whitespace-nowrap overflow-hidden text-ellipsis text-[13px] ${column.className || ''}`}
+              style={{ 
+                ...column.style,
+                maxWidth: maxWidth !== Infinity ? `${maxWidth}px` : undefined,
+                width: `${Math.min(columnWidths[column.key] || 0, maxWidth)}px`
+              }}
+              title={typeof content === 'string' ? content : ''}
+            >
+              {content}
+            </TableCell>
           );
         })}
-      </tr>
+      </TableRow>
       {hasChildren && isExpanded && item.children.map(child => (
-        <TableRow key={child.id} item={child} schema={schema} level={level + 1} onRowClick={onRowClick} columnWidths={columnWidths} updateWidth={updateWidth} rowClassName={rowClassName} />
+        <TableRowComponent key={child.id} item={child} schema={schema} level={level + 1} onRowClick={onRowClick} columnWidths={columnWidths} updateWidth={updateWidth} rowClassName={rowClassName} />
       ))}
     </React.Fragment>
   );
 };
 
-const TableHeader = ({ schema, columnWidths, updateWidth }) => {
+const TableHeaderComponent = ({ schema, columnWidths, updateWidth }) => {
   const { isAllSelected, toggleAllSelection, sortConfig, onSort } = useHierarchicalTable();
 
   return (
-    <thead>
-      <tr className="text-left text-xs text-gray-400 border-t border-b border-l border-r border-gray-800 bg-gray-800/30">
-        <th className="py-2 px-4 w-12">
+    <TableHeader>
+      <TableRow className="text-left text-[13px] text-gray-400 border-t border-b border-l border-r border-gray-800 bg-gray-800/30 ">
+        <TableHead className="py-2 px-4 w-12">
           <Checkbox
             checked={isAllSelected()}
             onCheckedChange={(checked) => toggleAllSelection(checked)}
           />
-        </th>
-        <th className="py-2 px-4 w-12">
+        </TableHead>
+        <TableHead className="py-2 px-4 w-12">
           <FiChevronRight className="text-gray-400 text-base" />
-        </th>
+        </TableHead>
         {schema.columns.map((column, index) => {
           const maxWidth = column.maxWidth || Infinity;
           const isSorted = sortConfig.key === column.key;
           const sortIcon = isSorted ? (sortConfig.direction === 'asc' ? <FiArrowUp /> : <FiArrowDown />) : null;
           return (
-            <React.Fragment key={index}>
-              <th 
-                className={`py-2 px-4 whitespace-nowrap overflow-hidden text-ellipsis ${column.headerClassName || ''} ${column.sortable ? 'cursor-pointer' : ''}`}
-                style={{ 
-                  maxWidth: maxWidth !== Infinity ? `${maxWidth}px` : undefined,
-                  width: `${Math.min(columnWidths[column.key] || 0, maxWidth)}px`,
-                  ...column.headerStyle
-                }}
-                onClick={() => column.sortable && onSort(column.key)}
-              >
-                <div className="flex items-center justify-between">
-                  <span>{column.header}</span>
-                  {sortIcon}
-                </div>
-              </th>
-            </React.Fragment>
+            <TableHead 
+              key={index}
+              className={`py-2 px-4 whitespace-nowrap overflow-hidden text-ellipsis text-[13px] ${column.headerClassName || ''} ${column.sortable ? 'cursor-pointer' : ''}`}
+              style={{ 
+                maxWidth: maxWidth !== Infinity ? `${maxWidth}px` : undefined,
+                width: `${Math.min(columnWidths[column.key] || 0, maxWidth)}px`,
+                ...column.headerStyle
+              }}
+              onClick={() => column.sortable && onSort(column.key)}
+            >
+              <div className="flex items-center justify-between">
+                <span>{column.header}</span>
+                {sortIcon}
+              </div>
+            </TableHead>
           );
         })}
-      </tr>
-    </thead>
+      </TableRow>
+    </TableHeader>
   );
 };
 
-const TableBody = ({ schema, onRowClick, columnWidths, updateWidth, rowClassName }) => {
+const TableBodyComponent = ({ schema, onRowClick, columnWidths, updateWidth, rowClassName }) => {
   const { sortedData } = useHierarchicalTable();
 
   return (
-    <tbody>
+    <TableBody>
       {sortedData.map(item => (
-        <TableRow 
+        <TableRowComponent 
           key={item.id} 
           item={item} 
           schema={schema} 
@@ -136,7 +142,7 @@ const TableBody = ({ schema, onRowClick, columnWidths, updateWidth, rowClassName
           rowClassName={rowClassName}
         />
       ))}
-    </tbody>
+    </TableBody>
   );
 };
 
@@ -145,7 +151,7 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange, pageSize, t
   // const endItem = Math.min((currentPage + 1) * pageSize, totalItems);
 
   return (
-    <div className="flex justify-between items-center mt-4 text-sm">
+    <div className="flex justify-between items-center mt-4 text-[13px]">
       <div className="text-gray-400">
         {/* Showing {startItem} to {endItem} of {totalItems} items */}
       </div>
@@ -190,10 +196,9 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange, pageSize, t
   );
 };
 
-const HierarchicalTable = ({ schema, data, onRowClick, onSelectionChange, initialSortConfig, rowClassName, currentPage, onPageChange, pageSize, totalItems, omitColumns, expandAll }) => {
+const HierarchicalTable = ({ schema, data, onRowClick, onSelectionChange, initialSortConfig, rowClassName, currentPage, onPageChange, pageSize, totalItems, omitColumns, expandAll, tableWidth = '100%' }) => {
   const [columnWidths, setColumnWidths] = useState({});
   const [isExpanded, setIsExpanded] = useState(false);
-
 
   const updateWidth = (key, width, maxWidth) => {
     setColumnWidths(prev => ({
@@ -212,8 +217,6 @@ const HierarchicalTable = ({ schema, data, onRowClick, onSelectionChange, initia
 
   const totalPages = Math.ceil(totalItems / pageSize);
 
-  // Filter columns if no rows are expanded and omitColumns is provided
-
   const filteredSchema = useMemo(() => {
     if (omitColumns && !isExpanded) {
       return {
@@ -224,7 +227,6 @@ const HierarchicalTable = ({ schema, data, onRowClick, onSelectionChange, initia
     return schema;
   }, [schema, omitColumns, isExpanded]);
 
-
   return (
     <HierarchicalTableProvider 
       data={data} 
@@ -233,21 +235,21 @@ const HierarchicalTable = ({ schema, data, onRowClick, onSelectionChange, initia
       setIsExpanded={setIsExpanded}
       expandAll={expandAll}
     >
-      <div className="overflow-x-auto hide-scrollbar">
-        <table className="w-full">
-          <TableHeader 
+      <div className="overflow-x-auto hide-scrollbar" style={{ width: tableWidth }}>
+        <Table>
+          <TableHeaderComponent 
             schema={filteredSchema} 
             columnWidths={columnWidths} 
             updateWidth={updateWidth} 
           />
-          <TableBody 
+          <TableBodyComponent 
             schema={filteredSchema} 
             onRowClick={onRowClick} 
             columnWidths={columnWidths} 
             updateWidth={updateWidth}
             rowClassName={rowClassName}
           />
-        </table>
+        </Table>
       </div>
       {onPageChange && (
         <PaginationControls

@@ -62,7 +62,7 @@ const InvocationsTable = ({ invocations, currentPage, setCurrentPage, pageSize, 
       header: 'LMP', 
       key: 'name', 
       render: (item) => (
-        <Card noMinW={true}>
+        <Card noMinW={true} className='border-none'>
           <LMPCardTitle 
             lmp={item.lmp} 
             paddingClassOverride='pl-2'
@@ -75,6 +75,7 @@ const InvocationsTable = ({ invocations, currentPage, setCurrentPage, pageSize, 
         </Card>
       ), 
       sortable: true,
+      maxWidth: 200,
       
     },
     { 
