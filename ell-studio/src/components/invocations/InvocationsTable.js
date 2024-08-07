@@ -6,7 +6,7 @@ import { getTimeAgo } from '../../utils/lmpUtils';
 import VersionBadge from '../VersionBadge';
 import { useNavigate } from 'react-router-dom';
 import { lstrCleanStringify } from '../../utils/lstrCleanStringify';
-
+import { GitCommitHorizontal } from 'lucide-react';
 const InvocationsTable = ({ invocations, currentPage, setCurrentPage, pageSize, onSelectTrace, currentlySelectedTrace, omitColumns = [], expandAll = false }) => {
   const navigate = useNavigate();
 
@@ -59,6 +59,43 @@ const InvocationsTable = ({ invocations, currentPage, setCurrentPage, pageSize, 
 
   const defaultColumns = [
     { 
+      header: 'Start Time', 
+      key: 'created_at', 
+      render: (item) => <span className="text-gray-400">{getTimeAgo(new Date(item.created_at))}</span>, 
+      maxWidth: 80,
+      sortable: true
+    },
+    { 
+      header: 'Version', 
+      key: 'version', 
+      render: (item) => (
+          <div className='text-xs scale-85 inline-block text-green-400'>
+            <div className="flex items-center gap-2">
+              <code>
+                <span className="text-gray-400 text-xs font-mono">VERSION</span> <span className="font-mono">{item.version}.00</span>
+              </code>
+            </div>
+          </div>
+      ), 
+      minWidth: 85,
+      maxWidth: 90,
+      sortable: true
+    },
+    { 
+      header: 'Latency', 
+      key: 'latency', 
+      render: (item) => <span className="text-red-400">{item.latency?.toFixed(2)}s</span>, 
+      maxWidth: 50,
+      sortable: true
+    },
+    { 
+      header: 'tokens', 
+      key: 'total_tokens', 
+      render: (item) => <code>{item.total_tokens}</code>, 
+      maxWidth: 80,
+      sortable: true
+    },
+    { 
       header: 'LMP', 
       key: 'name', 
       render: (item) => (
@@ -75,45 +112,11 @@ const InvocationsTable = ({ invocations, currentPage, setCurrentPage, pageSize, 
         </Card>
       ), 
       sortable: true,
-      maxWidth: 200,
+      maxWidth: 150,
       
     },
-    { 
-      header: 'Version', 
-      key: 'version', 
-      render: (item) => (
-        <VersionBadge 
-          version={item.version} 
-          lmpId={item.lmp.id} 
-          className='text-xs scale-85 inline-block' 
-        />
-      ), 
-      maxWidth: 150,
-      sortable: true
-    },
-    { header: 'Input', key: 'input', maxWidth: 300 },
-    { header: 'Output', key: 'output', render: (item) => `${item.output}...`, maxWidth: 600 },
-    { 
-      header: 'Start Time', 
-      key: 'created_at', 
-      render: (item) => <span className="text-gray-400">{getTimeAgo(new Date(item.created_at))}</span>, 
-      maxWidth: 150,
-      sortable: true
-    },
-    { 
-      header: 'Latency', 
-      key: 'latency', 
-      render: (item) => <span className="text-red-400">{item.latency?.toFixed(2)}s</span>, 
-      maxWidth: 100,
-      sortable: true
-    },
-    { 
-      header: 'Total Tokens', 
-      key: 'total_tokens', 
-      render: (item) => <span>{item.total_tokens}</span>, 
-      maxWidth: 120,
-      sortable: true
-    },
+    { header: 'Input', key: 'input', maxWidth: 300, render: (item) => <code>{item.input.replace(/^"|"$/g, '')}</code> },
+    { header: 'Output', key: 'output', maxWidth: 300, render: (item) => <code>{item.output.replace(/^"|"$/g, '')}</code> },
   ];
 
 
