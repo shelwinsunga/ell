@@ -12,10 +12,36 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from watchfiles import awatch
+import sys
+from ell.stores.sql import SQLiteStore, PostgresStore
 
+logger = logging.getLogger(__name__)
 
-logger = logging.getLogger(__file__)
-
+def check_and_init_db(config: Config, auto_init: bool) -> bool:
+    if config.storage_dir:
+        db_path = Path(config.storage_dir) / 'ell.db'
+        if not db_path.exists():
+            if auto_init:
+                logger.info(f"Initializing new SQLite database at: {db_path}")
+                SQLiteStore(config.storage_dir)
+                return True
+            else:
+                logger.error(f"Database file not found: {db_path}")
+                logger.error(f"To create a new database, run with --auto-init flag or run an ell script with: ell.init(store='{config.storage_dir}', autocommit=True)")
+                return False
+        return True
+    elif config.pg_connection_string:
+        try:
+            store = PostgresStore(config.pg_connection_string)
+            store.engine.execute("SELECT 1")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to connect to PostgreSQL database: {str(e)}")
+            return False
+    else:
+        logger.error("No storage configuration found.")
+        logger.error("Please  provide either --storage-dir or --pg-connection-string.")
+        return False
 
 def _socket_is_open(host, port) -> bool:
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
@@ -41,18 +67,24 @@ def main():
     parser.add_argument("--dev", action="store_true", help="Run in development mode")
     parser.add_argument("--open", action="store_true", help="Opens the studio web UI in a browser")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enables debug logging for more verbose output")
+    parser.add_argument("--auto-init", action="store_true", help="Automatically initialize the database if not found")
     args = parser.parse_args()
 
     _setup_logging(logging.DEBUG if args.verbose else logging.INFO)
 
     if args.dev:
-        assert args.port == 5555, "Port must be 5000 in development mode"
+        assert args.port == 5555, "Port must be 5555 in development mode"
 
     if not args.storage_dir:
         logger.warning("WARNING: Using current directory as the storage dir, pass --storage-dir to change this.")
 
     config = Config.create(storage_dir=args.storage_dir,
                     pg_connection_string=args.pg_connection_string)
+
+    if not check_and_init_db(config, args.auto_init):
+        logger.error("Database check failed. Exiting.")
+        sys.exit(1)
+
     app = create_app(config)
 
     if not args.dev:
